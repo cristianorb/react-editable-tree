@@ -1,28 +1,39 @@
 import React, { Component } from 'react';
-import { 
+import {
   FaChevronDown, 
-  FaChevronRight, 
+  FaChevronRight,
   FaFile, 
   FaFolder, 
   FaFolderOpen, 
+  FaTrash
 } from 'react-icons/fa';
 import styled from 'styled-components';
 
 const getPaddingLeft = (showRoot, level, item) => {
   let paddingLeft = 5;
   let paddingLeftItems = level === 0 ? 0 : showRoot ? (level) * 25 : (level - 1) * 25;
+  if (item.isLeaf) paddingLeft += 16;
   return paddingLeft + paddingLeftItems;
 }
   
+const ActionButton = styled.div`
+  font-size: 16px;
+  margin-left: auto;
+  display: none;
+`;
+
 const Node = styled.div`
   display: flex;
   padding: 5px 8px;
   flex-direction: row;
   align-items: center; 
-  padding-left: ${props => getPaddingLeft(props.showRoot, props.level, props.item)}px;
-  &:hover {
-    //background: lightblue;
-  }  
+  padding-left: ${props => getPaddingLeft(props.showRoot, props.level, props.item)}px;  
+  &:hover {   
+    background: whitesmoke;
+    ${ActionButton} {
+      display: inline;
+    }
+  } 
 `;
 
 const NodeIcon = styled.div`
@@ -31,7 +42,7 @@ const NodeIcon = styled.div`
 `;
 
 const InputText = styled.input`  
-  font-size: 16px; 
+  font-size: 16px;  
 `
 
 class TreeNode extends Component {
@@ -46,7 +57,7 @@ class TreeNode extends Component {
   }
 
   render() {
-    const { showRoot, tree, level, item, onToggle } = this.props;
+    const { showRoot, tree, item, level, onToggle, onRemove } = this.props;
     return (
       <React.Fragment>
         <Node showRoot={showRoot} level={level} item={item}>
@@ -60,6 +71,9 @@ class TreeNode extends Component {
               value={this.state.text}
               onChange={this.onChange}
             />
+            <ActionButton>              
+              <FaTrash onClick={() => onRemove(tree, item)} color={"#ff1a1a"} />
+            </ActionButton>
         </Node>      
       </React.Fragment>
     );

@@ -12,7 +12,7 @@ const TreeWrapper = styled.div`
 export default class Tree extends Component {
 
   state = {
-    treeRoot : {
+    treeRoot: {
       id: -1,
       text: 'root',
       expanded: true,
@@ -20,7 +20,7 @@ export default class Tree extends Component {
     },
     showRoot: get(this.props, 'showRoot', false)
   };
-  
+    
   onToggle = (tree, item) => {
     item.expanded = !item.expanded;
     tree.setState({
@@ -28,7 +28,36 @@ export default class Tree extends Component {
     });
   }
 
-  createTreeNodeChildren(tree, parent, level, children, showRoot) {
+  onRemove = (tree, item) => {
+    let parentNode = this.getParentItem(tree, item);
+    let childIndex = parentNode.children.findIndex((child) => {
+      return child.id === item.id && child.text === item.text;
+    });
+    parentNode.children.splice(childIndex, 1);
+    tree.setState({
+      selectedItem: undefined
+    });
+    this.props.onRemoveItem(item);
+  }
+
+  getParentItem = (tree, item, itemToFind) => {
+    let parent = itemToFind || tree.state.treeRoot;    
+    let itemsToFind = parent.children;        
+    for (let index = 0; index < itemsToFind.length; index++) {
+      let itemToFind = itemsToFind[index];
+      if (itemToFind.id === item.id && itemToFind.text === item.text) {
+        return parent;
+      }
+      if (itemToFind.children) {
+        let parent2 = this.getParentItem(tree, item, itemToFind);
+        if (parent2) {
+          return parent2;
+        }
+      }
+    }
+  }
+
+  createTreeNodeChildren(tree, parent, children, level, showRoot) {
     return (
       <div>
         {              
@@ -37,17 +66,17 @@ export default class Tree extends Component {
             let treeNodeChild = (
               <TreeNode 
                 showRoot={showRoot}
-                parent={parent}
-                tree={tree}                 
-                level={level} 
-                item={child} 
+                tree={tree}   
+                item={child}              
+                level={level}                  
                 onToggle={this.onToggle}
+                onRemove={this.onRemove}
               />
             );
             return (
               <div key={child.id}>
                 {treeNodeChild}
-                {this.createTreeNodeChildren(tree, treeNodeChild, level + 1, child.children, showRoot)}
+                {this.createTreeNodeChildren(tree, treeNodeChild, child.children, level + 1, showRoot)}
               </div>
             )
           }) : undefined
@@ -56,22 +85,23 @@ export default class Tree extends Component {
     );
   }
 
-  render() {
+  render() {  
     let { treeRoot, showRoot } = this.state;
-    let treeNodeRoot = (
-      <TreeNode
-        showRoot={showRoot}
-        tree={this}
-        level={0}
+    let treeRootNode = (
+      <TreeNode        
+        showRoot={showRoot}        
+        tree={this}        
         item={treeRoot}
-        onToggle={this.onToggle} 
+        level={0}
+        onToggle={this.onToggle}
+        onRemove={this.onRemove}
       />
     );
     return (
       <TreeWrapper>
         <div style={{ width: '800px' }}>
-          {showRoot ? treeNodeRoot : undefined}
-          {this.createTreeNodeChildren(this, treeNodeRoot, 1, treeRoot.children, showRoot)}
+          {showRoot ? treeRootNode : undefined}
+          {this.createTreeNodeChildren(this, treeRootNode, treeRoot.children, 1, showRoot)}
         </div>      
       </TreeWrapper>      
     );
